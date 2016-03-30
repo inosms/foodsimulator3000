@@ -14,7 +14,6 @@ public enum Flavour
     bitter
 }
 
-
 [RequireComponent(typeof(Collider2D))]
 public class Ingredient : MonoBehaviour 
 {
@@ -23,7 +22,11 @@ public class Ingredient : MonoBehaviour
 
     //Flavour system
     public List<Flavour> flavour = new List<Flavour>(3);
-    private List<Ingredient> connected = new List<Ingredient>();
+
+    //chain/connection system
+    public float distanceTolerance = 0.5f;
+    public List<Ingredient> connected = new List<Ingredient>(3);
+    private List<float> connectDistances = new List<float>(3);
 
 
 	// Use this for initialization
@@ -40,7 +43,48 @@ public class Ingredient : MonoBehaviour
 	void Update () 
     {
         drawDebugFlavour();
+        drawDebugConnections();
+
+        disconnectFarAway();//disconnects Ingredients that were previously connected but are too far away now
 	}
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        Ingredient ingr = other.GetComponentInParent<Ingredient>();
+
+        if (ingr != null && ingr != this && !connected.Contains(ingr))//a new, different ingredient could connect to this one
+        {
+
+            //check if they can connect over a shared flavour
+            bool shareFlavour = ingr.flavour.Exists(flavourA => { return this.flavour.Exists(flavourB => { return flavourA == flavourB; }); });
+
+            if (shareFlavour)
+            {
+                connected.Add(ingr);
+                connectDistances.Add(Vector3.Distance(transform.position, ingr.transform.position));
+            }
+        }
+    }
+
+    //Connection methods
+    void disconnectFarAway()
+    {
+        for (int i = 0; i < connected.Count; )
+        {
+            float dist = Vector3.Distance(connected[i].transform.position, transform.position);
+
+            //if ingredient too far away, disconnect from chain
+            if (dist > connectDistances[i] + distanceTolerance)
+            {
+                connected.RemoveAt(i);
+                connectDistances.RemoveAt(i);
+            }
+            else
+            {
+                i++;
+            }
+        }
+    }
 
 
     //flavour methods
@@ -105,6 +149,14 @@ public class Ingredient : MonoBehaviour
             Debug.DrawLine(a, b, typeColor(flavour[0]));
             Debug.DrawLine(b, c, typeColor(flavour[1]));
             Debug.DrawLine(c, a, typeColor(flavour[2]));
+        }
+    }
+
+    private void drawDebugConnections()
+    {
+        foreach (Ingredient i in connected)
+        {
+            Debug.DrawLine(transform.position + new Vector3(0, 0, -5), i.transform.position + new Vector3(0, 0, -5), Color.green);
         }
     }
 
