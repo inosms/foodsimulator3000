@@ -53,6 +53,11 @@ public class MassSpringSystem : MonoBehaviour
                     Vector2 originalDistVector = MassPoints[i].position - MassPoints[j].position;
                     spring.distance = originalDistVector.magnitude;
 
+					// if enabled (which it is by default) the Systems will just 
+					// collapse on OSX for some strange reason.
+					// Only god knows why
+					spring.autoConfigureDistance = false;
+
                     springs.Add(spring);
                 }
             }
