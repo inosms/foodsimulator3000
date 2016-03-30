@@ -84,5 +84,56 @@
 		}
 		ENDCG
 	}
+	Subshader {
+		Tags { "RenderType"="Opaque" }
+		LOD 200
+		
+		CGPROGRAM
+		// Physically based Standard lighting model, and enable shadows on all light types
+		#pragma surface surf Standard fullforwardshadows vertex:vert
+		#include "UnityCG.cginc"
+
+		struct vertexIn
+		{
+			uint id : SV_VertexID;
+			float4 vertex : POSITION;
+			float4 tangent : TANGENT;
+			float3 normal : NORMAL;
+			float4 texcoord : TEXCOORD0;
+			float4 texcoord1 : TEXCOORD1;
+			float4 texcoord2 : TEXCOORD2;
+			float4 texcoord3 : TEXCOORD3;
+			fixed4 color : COLOR;
+		};
+
+		float _SkinWidth;
+
+		void vert (inout vertexIn v) 
+		{
+			v.vertex.xy *= (1.0f + _SkinWidth);
+		}
+		
+		sampler2D _MainTex;
+
+		struct Input {
+			float2 uv_MainTex;
+		};
+
+		half _Glossiness;
+		half _Metallic;
+		fixed4 _Color;
+		
+		void surf (Input IN, inout SurfaceOutputStandard o) {
+			// Albedo comes from a texture tinted by color
+			fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
+			o.Albedo = c.rgb;
+			
+			// Metallic and smoothness come from slider variables
+			o.Metallic = _Metallic;
+			o.Smoothness = _Glossiness;
+			o.Alpha = c.a;
+		}
+		ENDCG
+	}
 	FallBack "Diffuse"
 }

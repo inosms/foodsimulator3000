@@ -98,9 +98,9 @@ public class Ingredient : MonoBehaviour
     {
         Vector3 a, b, c;//points of triangle
 
-        a = transform.position + new Vector3(0, transform.localScale.y, 0);
-        b = transform.position + new Vector3(-transform.localScale.x, -transform.localScale.y * 0.5f, 0);
-        c = transform.position + new Vector3(transform.localScale.x, -transform.localScale.y * 0.5f, 0);
+        a = transform.position + new Vector3(0, transform.localScale.y*0.5f, -5);
+        b = transform.position + new Vector3(-transform.localScale.x*0.5f, -transform.localScale.y * 0.25f, -5);
+        c = transform.position + new Vector3(transform.localScale.x*0.5f, -transform.localScale.y * 0.25f, -5);
 
         if (flavour.Count == 3)
         {
