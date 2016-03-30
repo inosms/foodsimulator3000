@@ -15,26 +15,24 @@ public enum Flavour
 }
 
 
+[RequireComponent(typeof(Collider2D))]
 public class Ingredient : MonoBehaviour 
 {
     //references to other components
+    private Collider2D trigger;
 
     //Flavour system
-    private List<Flavour> flavour = new List<Flavour>(3);
+    public List<Flavour> flavour = new List<Flavour>(3);
+    private List<Ingredient> connected = new List<Ingredient>();
 
 
 	// Use this for initialization
 	void Start () 
     {
-        //choose three different flavours for the ingredient randomly
-        Array possibleTastes = Enum.GetValues(typeof(Flavour));
+        //get references to other components
+        trigger = GetComponent<Collider2D>();
 
-        while (flavour.Count < 3)
-        {
-            Flavour randomTaste = (Flavour)UnityEngine.Random.Range(0, possibleTastes.Length);
-
-            if (!flavour.Contains(randomTaste)) { flavour.Add(randomTaste); }
-        }
+        generateRandomFlavours();
 	
 	}
 	
@@ -93,7 +91,7 @@ public class Ingredient : MonoBehaviour
     }
 
 
-    //Debug methods
+    //Debug / Test methods
     private void drawDebugFlavour()
     {
         Vector3 a, b, c;//points of triangle
@@ -107,6 +105,19 @@ public class Ingredient : MonoBehaviour
             Debug.DrawLine(a, b, typeColor(flavour[0]));
             Debug.DrawLine(b, c, typeColor(flavour[1]));
             Debug.DrawLine(c, a, typeColor(flavour[2]));
+        }
+    }
+
+    private void generateRandomFlavours()
+    {
+        //choose three different flavours for the ingredient randomly
+        Array possibleTastes = Enum.GetValues(typeof(Flavour));
+
+        while (flavour.Count < 3)
+        {
+            Flavour randomTaste = (Flavour)UnityEngine.Random.Range(0, possibleTastes.Length);
+
+            if (!flavour.Contains(randomTaste)) { flavour.Add(randomTaste); }
         }
     }
 }
