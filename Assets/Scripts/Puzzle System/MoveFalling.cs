@@ -43,17 +43,18 @@ public class MoveFalling : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        //if the mass spring system collides with something
-        if (other.transform.parent != transform)
-        {
-            //remove this script, giving control to physics simulation
-            foreach (Rigidbody2D r in rigidBodies)
-            {
-                r.gravityScale = 1.0f;
-            }
+		// if the mass spring system collides with something
+		// and this something is not itself and not the wall
+		if (other.transform.parent != transform && !other.tag.Equals("Wall"))
+		{
 
-            Destroy(this);
+			//remove this script, giving control to physics simulation
+			foreach (Rigidbody2D r in rigidBodies)
+			{
+				r.gravityScale = 1.0f;
+			}
 
-        }
+			Destroy(this);          
+		}
     }
 }
