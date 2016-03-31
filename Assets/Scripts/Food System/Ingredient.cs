@@ -24,10 +24,16 @@ public class Ingredient : MonoBehaviour
     public List<Flavour> flavour = new List<Flavour>(3);
 
     //chain/connection system
-    public float distanceTolerance = 1.0f;
     public List<Ingredient> connected = new List<Ingredient>(3);
+    private List<int> associatedSlot = new List<int>(3);//slot index (in flavour) of connection i
+
+    public List<bool> slotConnected = new List<bool>(3);//is flavour i connected?
+    
     private List<float> connectDistances = new List<float>(3);
-    public List<bool> flavourConnected = new List<bool>(3);
+    public float distanceTolerance = 1.0f;
+    
+    
+    
 
 
 	// Use this for initialization
@@ -36,7 +42,7 @@ public class Ingredient : MonoBehaviour
         //get references to other components
         trigger = GetComponent<Collider2D>();
 
-        generateRandomFlavours(2);
+        generateRandomFlavours(3);
 	
 	}
 	
@@ -57,30 +63,24 @@ public class Ingredient : MonoBehaviour
         
         if (ingr != null && ingr != this && !connected.Contains(ingr))//a new, different ingredient could connect to this one
         {
-            /*
+            
             //check if they can connect over a shared flavour
             for(int i = 0; i < flavour.Count; i++)
             {
-                if (!flavourConnected[i])//is the flavour unconnected?
+                if (!slotConnected[i])//is the flavour unconnected?
                 {
                     int flavourB_index = ingr.flavour.FindIndex(flavourB => { return flavourB == flavour[i]; });//find a flavour to connect to
 
                     //if the flavour has been found and can be connected to
-                    if (flavourB_index != -1 && !ingr.flavourConnected[flavourB_index])
+                    if (flavourB_index != -1 && !ingr.slotConnected[flavourB_index])
                     {
+                        //connect other
+                        ingr.connect(this, flavour[i]);
 
+                        //connect self
+                        connect(ingr, flavour[i]);
                     }
                 }
-
-
-            }*/
-
-            bool shareFlavour = ingr.flavour.Exists(flavourA => { return this.flavour.Exists(flavourB => { return flavourA == flavourB; }); });
-
-            if (shareFlavour)
-            {
-                connected.Add(ingr);
-                connectDistances.Add(Vector3.Distance(transform.position, ingr.transform.position));
 
 
             }
@@ -97,14 +97,40 @@ public class Ingredient : MonoBehaviour
             //if ingredient too far away, disconnect from chain
             if (dist > connectDistances[i] + distanceTolerance)
             {
-                connected.RemoveAt(i);
-                connectDistances.RemoveAt(i);
+                //disconnect other
+                connected[i].disconnect(this);
+
+                //disconnect self
+                disconnect(connected[i]);
             }
             else
             {
                 i++;
             }
         }
+    }
+
+    public void connect(Ingredient i, Flavour sharedFlavour)
+    {
+        connected.Add(i);
+        connectDistances.Add(Vector3.Distance(transform.position, i.transform.position));
+
+        //close slot
+        int slot = flavour.FindIndex(f => { return f == sharedFlavour; });
+        associatedSlot.Add(slot);
+        slotConnected[slot] = true;
+    }
+
+    public void disconnect(Ingredient i)
+    {
+        //find ingredient and remove associated data
+        int index = connected.FindIndex(ingr => { return i == ingr; });
+        connected.RemoveAt(index);
+        connectDistances.RemoveAt(index);
+
+        //open up slot
+        slotConnected[associatedSlot[index]] = false;
+        associatedSlot.RemoveAt(index);
     }
 
 
@@ -189,7 +215,7 @@ public class Ingredient : MonoBehaviour
         {
             Flavour randomTaste = (Flavour)UnityEngine.Random.Range(0, possibleTastes.Length);
 
-            if (!flavour.Contains(randomTaste)) { flavour.Add(randomTaste); }
+            if (!flavour.Contains(randomTaste)) { flavour.Add(randomTaste); slotConnected.Add(false); }
         }
     }
 }
