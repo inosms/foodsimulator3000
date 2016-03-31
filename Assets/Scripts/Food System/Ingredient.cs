@@ -79,6 +79,8 @@ public class Ingredient : MonoBehaviour
 
                         //connect self
                         connect(ingr, flavour[i]);
+
+                        return;//the ingredients have been connected
                     }
                 }
 
@@ -144,7 +146,7 @@ public class Ingredient : MonoBehaviour
         {
             case Flavour.sweet:
                 {
-                    result = new Color(1.0f, 204.0f / 255.0f, 1.0f);
+                    result = new Color(0.0f, 255.0f, 0.0f);
                     break;
                 }
             case Flavour.sour:
@@ -198,9 +200,10 @@ public class Ingredient : MonoBehaviour
 
     private void drawDebugConnections()
     {
-        foreach (Ingredient i in connected)
+        for (int i = 0; i < connected.Count; i++ )
         {
-            Debug.DrawLine(transform.position + new Vector3(0, 0, -5), i.transform.position + new Vector3(0, 0, -5), Color.green);
+            Color drawCol = typeColor(flavour[associatedSlot[i]]);//choose the colour according to the shared flavour of the connection
+            Debug.DrawLine(transform.position + new Vector3(0, 0, -5), connected[i].transform.position + new Vector3(0, 0, -5), drawCol);
         }
     }
 
