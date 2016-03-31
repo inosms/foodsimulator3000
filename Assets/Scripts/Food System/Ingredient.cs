@@ -15,10 +15,12 @@ public enum Flavour
 }
 
 [RequireComponent(typeof(Collider2D))]
+[RequireComponent(typeof(MassSpringSystem))]
 public class Ingredient : MonoBehaviour 
 {
     //references to other components
     private Collider2D trigger;
+    private MassSpringSystem massSpring;
 
     //Flavour system
     public List<Flavour> flavour = new List<Flavour>(3);
@@ -32,7 +34,7 @@ public class Ingredient : MonoBehaviour
     private List<float> connectDistances = new List<float>(3);
     public float distanceTolerance = 1.0f;
 
-    public List<Ingredient> currentChain = new List<Ingredient>();
+    public static float stillVelocity = 1.0f;
 
 
 	//Monobehaviour (Events)
@@ -40,6 +42,7 @@ public class Ingredient : MonoBehaviour
     {
         //get references to other components
         trigger = GetComponent<Collider2D>();
+        massSpring = GetComponent<MassSpringSystem>();
 
         generateRandomFlavours(UnityEngine.Random.Range(1, 4));
 	
@@ -51,6 +54,12 @@ public class Ingredient : MonoBehaviour
         drawDebugConnections();
 
         disconnectFarAway();//disconnects Ingredients that were previously connected but are too far away now
+
+        //check whether chain should be destroyed
+        if (flavourConnected.TrueForAll(x => { return x == true; }))
+        {
+            StartCoroutine("destroyChain_when_still");
+        }
 	}
 
     void OnTriggerEnter2D(Collider2D other)
@@ -120,9 +129,6 @@ public class Ingredient : MonoBehaviour
         int slot = flavour.FindIndex(f2 => { return f2 == f; });
         sharedFlavour.Add(slot);
         flavourConnected[slot] = true;
-
-        currentChain.Clear();
-        getChain(ref currentChain);
     }
 
     public void disconnect(Ingredient i)
@@ -135,9 +141,6 @@ public class Ingredient : MonoBehaviour
         //open up slot
         flavourConnected[sharedFlavour[index]] = false;
         sharedFlavour.RemoveAt(index);
-
-        currentChain.Clear();
-        getChain(ref currentChain);
     }
 
     public void getChain(ref List<Ingredient> chain)
@@ -151,6 +154,49 @@ public class Ingredient : MonoBehaviour
             i.getChain(ref chain);
         }
  
+    }
+
+    private void destroyChain()
+    {
+        //get full chain
+        List<Ingredient> chain = new List<Ingredient>();
+        getChain(ref chain);
+
+        //destroy every ingredient object in it
+        foreach(Ingredient i in chain)
+        {
+            Destroy(i.gameObject);
+        }
+
+    }
+
+    private IEnumerator destroyChainDelayed(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        destroyChain();
+    }
+
+    private IEnumerator destroyChain_when_still()
+    {
+        //get full chain
+        List<Ingredient> chain = new List<Ingredient>();
+        getChain(ref chain);
+
+        //wait 'til chain does not move (much)
+        bool chainStill = false;
+
+        while (!chainStill)
+        {
+            yield return new WaitForSeconds(0.5f);
+            chainStill = chain.TrueForAll(i => { return (i.massSpring.getOverallVelocity().magnitude < stillVelocity); });
+        }
+
+        //destroy every ingredient object in it
+        foreach (Ingredient i in chain)
+        {
+            Destroy(i.gameObject);
+        }
     }
 
     //flavour methods
