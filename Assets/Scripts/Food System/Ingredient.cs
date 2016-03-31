@@ -24,9 +24,10 @@ public class Ingredient : MonoBehaviour
     public List<Flavour> flavour = new List<Flavour>(3);
 
     //chain/connection system
-    public float distanceTolerance = 0.5f;
+    public float distanceTolerance = 1.0f;
     public List<Ingredient> connected = new List<Ingredient>(3);
     private List<float> connectDistances = new List<float>(3);
+    public List<bool> flavourConnected = new List<bool>(3);
 
 
 	// Use this for initialization
@@ -50,18 +51,38 @@ public class Ingredient : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
+        
         Ingredient ingr = other.GetComponentInParent<Ingredient>();
 
+        
         if (ingr != null && ingr != this && !connected.Contains(ingr))//a new, different ingredient could connect to this one
         {
-
+            /*
             //check if they can connect over a shared flavour
+            for(int i = 0; i < flavour.Count; i++)
+            {
+                if (!flavourConnected[i])//is the flavour unconnected?
+                {
+                    int flavourB_index = ingr.flavour.FindIndex(flavourB => { return flavourB == flavour[i]; });//find a flavour to connect to
+
+                    //if the flavour has been found and can be connected to
+                    if (flavourB_index != -1 && !ingr.flavourConnected[flavourB_index])
+                    {
+
+                    }
+                }
+
+
+            }*/
+
             bool shareFlavour = ingr.flavour.Exists(flavourA => { return this.flavour.Exists(flavourB => { return flavourA == flavourB; }); });
 
             if (shareFlavour)
             {
                 connected.Add(ingr);
                 connectDistances.Add(Vector3.Distance(transform.position, ingr.transform.position));
+
+
             }
         }
     }

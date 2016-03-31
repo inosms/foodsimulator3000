@@ -3,19 +3,22 @@ using System.Collections;
 using System.Collections.Generic;
 
 [RequireComponent(typeof(MassSpringSystem))]
+[RequireComponent(typeof(Collider2D))]
 public class MoveFalling : MonoBehaviour 
 {
     public static float fallSpeed = 25.0f;//TODO: should be outsourced later
     public static float moveSpeed = 50.0f;
 
-
+    //movement and physics
     private MassSpringSystem toMove;
     private List<Rigidbody2D> rigidBodies = new List<Rigidbody2D>();
+    private Collider2D trigger;
 
 	// Use this for initialization
 	void Start () 
     {
         toMove = GetComponent<MassSpringSystem>();
+        trigger = GetComponent<Collider2D>();
         rigidBodies.AddRange(toMove.getPointRigidbodies());
 
         foreach (Rigidbody2D r in rigidBodies)
@@ -43,7 +46,6 @@ public class MoveFalling : MonoBehaviour
         //if the mass spring system collides with something
         if (other.transform.parent != transform)
         {
-
             //remove this script, giving control to physics simulation
             foreach (Rigidbody2D r in rigidBodies)
             {
@@ -51,6 +53,7 @@ public class MoveFalling : MonoBehaviour
             }
 
             Destroy(this);
+
         }
     }
 }
