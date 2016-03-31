@@ -35,7 +35,7 @@ public class Ingredient : MonoBehaviour
         //get references to other components
         trigger = GetComponent<Collider2D>();
 
-        generateRandomFlavours();
+        generateRandomFlavours(2);
 	
 	}
 	
@@ -144,12 +144,9 @@ public class Ingredient : MonoBehaviour
         b = transform.position + new Vector3(-transform.localScale.x*0.5f, -transform.localScale.y * 0.25f, -5);
         c = transform.position + new Vector3(transform.localScale.x*0.5f, -transform.localScale.y * 0.25f, -5);
 
-        if (flavour.Count == 3)
-        {
-            Debug.DrawLine(a, b, typeColor(flavour[0]));
-            Debug.DrawLine(b, c, typeColor(flavour[1]));
-            Debug.DrawLine(c, a, typeColor(flavour[2]));
-        }
+        if (flavour.Count > 0) { Debug.DrawLine(a, b, typeColor(flavour[0])); }
+        if (flavour.Count > 1) { Debug.DrawLine(b, c, typeColor(flavour[1])); }
+        if (flavour.Count > 2) { Debug.DrawLine(c, a, typeColor(flavour[2])); }
     }
 
     private void drawDebugConnections()
@@ -160,12 +157,14 @@ public class Ingredient : MonoBehaviour
         }
     }
 
-    private void generateRandomFlavours()
+    private void generateRandomFlavours(int num)
     {
         //choose three different flavours for the ingredient randomly
         Array possibleTastes = Enum.GetValues(typeof(Flavour));
 
-        while (flavour.Count < 3)
+        if (possibleTastes.Length < num) { num = possibleTastes.Length; }//ensure there is no endless while loop
+
+        while (flavour.Count < num)
         {
             Flavour randomTaste = (Flavour)UnityEngine.Random.Range(0, possibleTastes.Length);
 

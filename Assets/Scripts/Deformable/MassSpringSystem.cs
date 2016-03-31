@@ -223,4 +223,9 @@ public class MassSpringSystem : MonoBehaviour
 
         return result;
     }
+
+    public List<Rigidbody2D> getPointRigidbodies()
+    {
+        return pointRigidBodies;
+    }
 }
