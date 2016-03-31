@@ -25,28 +25,26 @@ public class Ingredient : MonoBehaviour
 
     //chain/connection system
     public List<Ingredient> connected = new List<Ingredient>(3);
-    private List<int> associatedSlot = new List<int>(3);//slot index (in flavour) of connection i
+    private List<int> sharedFlavour = new List<int>(3);//flavour (index) over which ingredient i is connected
 
-    public List<bool> slotConnected = new List<bool>(3);//is flavour i connected?
+    public List<bool> flavourConnected = new List<bool>(3);//is flavour i connected?
     
     private List<float> connectDistances = new List<float>(3);
     public float distanceTolerance = 1.0f;
-    
-    
-    
+
+    public List<Ingredient> currentChain = new List<Ingredient>();
 
 
-	// Use this for initialization
+	//Monobehaviour (Events)
 	void Start () 
     {
         //get references to other components
         trigger = GetComponent<Collider2D>();
 
-        generateRandomFlavours(3);
+        generateRandomFlavours(UnityEngine.Random.Range(1, 4));
 	
 	}
 	
-	// Update is called once per frame
 	void Update () 
     {
         drawDebugFlavour();
@@ -67,12 +65,12 @@ public class Ingredient : MonoBehaviour
             //check if they can connect over a shared flavour
             for(int i = 0; i < flavour.Count; i++)
             {
-                if (!slotConnected[i])//is the flavour unconnected?
+                if (!flavourConnected[i])//is the flavour unconnected?
                 {
                     int flavourB_index = ingr.flavour.FindIndex(flavourB => { return flavourB == flavour[i]; });//find a flavour to connect to
 
                     //if the flavour has been found and can be connected to
-                    if (flavourB_index != -1 && !ingr.slotConnected[flavourB_index])
+                    if (flavourB_index != -1 && !ingr.flavourConnected[flavourB_index])
                     {
                         //connect other
                         ingr.connect(this, flavour[i]);
@@ -88,6 +86,7 @@ public class Ingredient : MonoBehaviour
             }
         }
     }
+
 
     //Connection methods
     void disconnectFarAway()
@@ -112,15 +111,18 @@ public class Ingredient : MonoBehaviour
         }
     }
 
-    public void connect(Ingredient i, Flavour sharedFlavour)
+    public void connect(Ingredient i, Flavour f)
     {
         connected.Add(i);
         connectDistances.Add(Vector3.Distance(transform.position, i.transform.position));
 
         //close slot
-        int slot = flavour.FindIndex(f => { return f == sharedFlavour; });
-        associatedSlot.Add(slot);
-        slotConnected[slot] = true;
+        int slot = flavour.FindIndex(f2 => { return f2 == f; });
+        sharedFlavour.Add(slot);
+        flavourConnected[slot] = true;
+
+        currentChain.Clear();
+        getChain(ref currentChain);
     }
 
     public void disconnect(Ingredient i)
@@ -131,10 +133,25 @@ public class Ingredient : MonoBehaviour
         connectDistances.RemoveAt(index);
 
         //open up slot
-        slotConnected[associatedSlot[index]] = false;
-        associatedSlot.RemoveAt(index);
+        flavourConnected[sharedFlavour[index]] = false;
+        sharedFlavour.RemoveAt(index);
+
+        currentChain.Clear();
+        getChain(ref currentChain);
     }
 
+    public void getChain(ref List<Ingredient> chain)
+    {
+        if (chain.Contains(this)) { return; }
+
+        chain.Add(this);
+
+        foreach (Ingredient i in connected)
+        {
+            i.getChain(ref chain);
+        }
+ 
+    }
 
     //flavour methods
     public static Color typeColor(Flavour f)//associates flavour with colour
@@ -202,7 +219,7 @@ public class Ingredient : MonoBehaviour
     {
         for (int i = 0; i < connected.Count; i++ )
         {
-            Color drawCol = typeColor(flavour[associatedSlot[i]]);//choose the colour according to the shared flavour of the connection
+            Color drawCol = typeColor(flavour[sharedFlavour[i]]);//choose the colour according to the shared flavour of the connection
             Debug.DrawLine(transform.position + new Vector3(0, 0, -5), connected[i].transform.position + new Vector3(0, 0, -5), drawCol);
         }
     }
@@ -218,7 +235,7 @@ public class Ingredient : MonoBehaviour
         {
             Flavour randomTaste = (Flavour)UnityEngine.Random.Range(0, possibleTastes.Length);
 
-            if (!flavour.Contains(randomTaste)) { flavour.Add(randomTaste); slotConnected.Add(false); }
+            if (!flavour.Contains(randomTaste)) { flavour.Add(randomTaste); flavourConnected.Add(false); }
         }
     }
 }

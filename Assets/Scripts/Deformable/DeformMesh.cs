@@ -9,7 +9,7 @@ public class DeformMesh : MonoBehaviour
     public Transform[] cagePoints = new Transform[4];//points of the cage that controls deformation
     
     //components
-    private MeshRenderer renderer;
+    private MeshRenderer meshRenderer;
     private MeshFilter meshFilter;
     private Mesh mesh;
     private Material mat;
@@ -25,8 +25,8 @@ public class DeformMesh : MonoBehaviour
 	void Start () 
     {
         //get component references
-        renderer = GetComponent<MeshRenderer>();
-        mat = renderer.material;
+        meshRenderer = GetComponent<MeshRenderer>();
+        mat = meshRenderer.material;
 
         meshFilter = GetComponent<MeshFilter>();
         mesh = meshFilter.mesh;
